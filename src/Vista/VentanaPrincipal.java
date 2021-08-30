@@ -1,10 +1,7 @@
+package Vista;
 
-package Vistas;
-
-
-import BaseDatos.Consultas;
-import Entidades.PersonaDAO;
-import Entidades.Persona;
+import Controlador.Consultas;
+import Modelo.Usuario;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -17,7 +14,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      * Creates new form Principal
      */
     private Consultas cons = new Consultas();
-    PersonaDAO pdao = new PersonaDAO();
+   
     
             
     public VentanaPrincipal() {
@@ -335,7 +332,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jInternalFrame1Layout.createSequentialGroup()
                 .addGap(31, 31, 31)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 169, Short.MAX_VALUE)
                 .addGap(11, 11, 11)
                 .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnAgregar)
@@ -529,9 +526,18 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private void btnListarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarActionPerformed
      
         try {
+            cons.ListarDatosTabla(tbResultados, "select * from aspirantes", jTextArea1);
+            
+            /* try {
             for (Persona per : cons.consultar()) {
-                System.out.println("libro: "+per.getLibro()+" titulo: "+per.getTitulo()+" autor: "+per.getAutor()+" numpag: "+per.getNumpag());    
+            System.out.println("libro: "+per.getLibro()+" titulo: "+per.getTitulo()+" autor: "+per.getAutor()+" numpag: "+per.getNumpag());    
             }
+            } catch (ClassNotFoundException ex) {
+            Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            */
+        } catch (SQLException ex) {
+            Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         }

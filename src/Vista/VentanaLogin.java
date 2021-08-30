@@ -1,7 +1,8 @@
-package Vistas;
+package Vista;
 
-import BaseDatos.BaseDatosOracle;
-import BaseDatos.BaseDatosPostgreSQL;
+import Controlador.BaseDatosOracle;
+import Controlador.BaseDatosPostgreSQL;
+import Modelo.Usuario;
 import java.sql.Connection;
 import javax.swing.JOptionPane;
 import oracle.jdbc.OraclePreparedStatement;
@@ -10,11 +11,39 @@ import oracle.jdbc.OracleResultSet;
 public class VentanaLogin extends javax.swing.JFrame {
     
     String opcion = "";
+    private static Usuario usuario_BD = new Usuario();
     
     public VentanaLogin() {
         initComponents();
     }
 
+    public boolean validarDatos(){
+        if (txt_Usuario.getText().isEmpty() || txt_Contrasena.getText().isEmpty() || 
+                    txt_Instancia.getText().isEmpty() || txt_host.getText().isEmpty() ||
+                    txt_Puerto.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Aún hay campos por llenar");
+                return false;
+        }else{
+            return true;
+        }
+    }
+    public void conectar(){
+        usuario_BD.setUser(String.valueOf(txt_Usuario.getText()));
+        usuario_BD.setContrasena(String.valueOf(txt_Contrasena.getText()));
+        usuario_BD.setInstancia(String.valueOf(txt_Instancia.getText()));
+        usuario_BD.setHost(String.valueOf(txt_host.getText()));
+        usuario_BD.setPuerto(String.valueOf(txt_Puerto.getText()));
+        
+        try {
+            Connection connection = BaseDatosOracle.conectar_Oracle();
+            if (connection == null) {
+                JOptionPane.showMessageDialog(rootPane, "ERROR");
+            }else{
+                JOptionPane.showMessageDialog(rootPane, "BIENVENIDO A ORACLE");
+            }
+        } catch (Exception e) {
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -223,20 +252,24 @@ public class VentanaLogin extends javax.swing.JFrame {
 
     private void btn_conectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_conectarActionPerformed
         try {
-            if (txt_Usuario.getText().isEmpty() || txt_Contrasena.getText().isEmpty() || 
-                    txt_Instancia.getText().isEmpty() || txt_host.getText().isEmpty() ||
-                    txt_Puerto.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Aún hay campos por llenar");
-            }else{
-                if (opcion.equals("Oracle")) {
-                    BaseDatosOracle.conectar_Oracle();
-                    VentanaPrincipal p = new VentanaPrincipal();
-                    p.setVisible(true);
-                //BaseDatosOracle.conectar_Oracle(txt_Usuario.getText(), new String (txt_Contrasena.getPassword()));
-                }else if(opcion.equals("PostgreSQL")){
-                    BaseDatosPostgreSQL.conectar_PostgreSQL(txt_Usuario.getText(), new String(txt_Contrasena.getPassword()));
-                }
-            }       
+            if (validarDatos()==true){
+                conectar();
+                new VentanaPrincipal().setVisible(true);
+                dispose();
+            }
+//            }else{i
+////                if (opcion.equals("Oracle")) {
+////                    conectar();
+////                   new VentanaPrincipal().setVisible(true);
+////                   dispose();
+//                    
+////                    BaseDatosOracle.conectar_Oracle();
+////                    VentanaPrincipal p = new VentanaPrincipal();
+////                    p.setVisible(true);
+//                //BaseDatosOracle.conectar_Oracle(txt_Usuario.getText(), new String (txt_Contrasena.getPassword()));
+//                }else if(opcion.equals("PostgreSQL")){
+//                    BaseDatosPostgreSQL.conectar_PostgreSQL(txt_Usuario.getText(), new String(txt_Contrasena.getPassword()));
+//                }    
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Conexion no valida");
         }
