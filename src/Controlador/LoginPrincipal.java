@@ -1,6 +1,7 @@
 
-package Vista;
+package Controlador;
 import Controlador.BaseDatosOracle;
+import Vista.VentanaLogin;
 
 public class LoginPrincipal {
     public static void main(String[] args) {

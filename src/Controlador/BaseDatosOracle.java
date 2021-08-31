@@ -2,10 +2,8 @@ package Controlador;
 
 import Modelo.Usuario;
 import Vista.VentanaPrincipal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+import java.sql.*;
+import javax.swing.*;
 
 public class BaseDatosOracle {
     
@@ -26,7 +24,7 @@ public class BaseDatosOracle {
         String instancia = usuario_BD.getInstancia();
         String host = usuario_BD.getHost();
         String puerto = usuario_BD.getPuerto();
-        String basedatos = "oracle";
+        String basedatos = usuario_BD.getBaseDatos();
         String url = "jdbc:"+ basedatos + ":thin:@" + host + ":"+ puerto + ":"+ instancia + "";
 
         try{

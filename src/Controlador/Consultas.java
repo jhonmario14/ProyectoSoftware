@@ -2,37 +2,27 @@ package Controlador;
 
 import Modelo.Usuario;
 import java.awt.List;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Collection;
-import java.util.Vector;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.table.DefaultTableModel;
+import java.sql.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.table.*;
 
 public class Consultas {
-    
-    public Collection<Usuario> consultar () throws ClassNotFoundException{
-        PreparedStatement pst = null;
-        ResultSet rs = null;
-        String sql = "select libro, titulo, autor, numpag from libro";
-        //System.out.println("sql: "+sql);
         
-        Vector<Usuario> lista = new Vector<Usuario>();
+    public static ArrayList<String> consultar(String consulta) throws ClassNotFoundException{
+        
+        ArrayList<String> lista = new ArrayList<String>();
         try {
-            Connection conn = BaseDatosOracle.conectar_Oracle();
-            pst = conn.prepareStatement(sql);
-            rs = pst.executeQuery();
-            while (rs.next()) {
-//                Usuario p = new Usuario(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4));
-//                lista.add(p);  
+            Connection conex = BaseDatosOracle.conectar_Oracle();
+            Statement st = conex.createStatement();
+            ResultSet rs = st.executeQuery(consulta);
+            ResultSetMetaData result = rs.getMetaData();
+            int colum = result.getColumnCount();
+            while (rs.next()) {                
+                lista.add(String.valueOf(rs.getObject(1)));
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null , "ERROR "+e.getMessage());
+            System.err.println(e.getMessage());
         }
         return lista;
     }
@@ -76,4 +66,5 @@ public class Consultas {
             textError.setText(e.getMessage());
         }
     }
+    
 }
