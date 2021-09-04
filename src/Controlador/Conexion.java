@@ -36,18 +36,17 @@ public class Conexion {
         try{
             if (Conexion.connection == null) {
                 System.out.println(Conexion.connection);
-
+                
                 if (BD == "oracle") {
                     try {
                             Class.forName("oracle.jdbc.OracleDriver");
                         } catch (ClassNotFoundException e) {
-                            JOptionPane.showMessageDialog(null, "ERROR DE CONEXION" +e.getMessage());
+                            JOptionPane.showMessageDialog(null, "ERROR DE CONEXION..." +e.getMessage());
                         }
                         Conexion.connection = DriverManager.getConnection(url, usuario, contrasena);          
                 }else if (BD == "postgresql") {
                         String urlp = "jdbc:"+ BD+ "://" + host + ":"+ puerto + "/"+ instancia + "";
 //                                "jdbc:postgresql://localhost:5432/Taller4";
-
                         Class.forName("org.postgresql.Driver");
                         Conexion.connection = DriverManager.getConnection(urlp, usuario, contrasena); 
                 }

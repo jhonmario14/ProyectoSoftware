@@ -21,7 +21,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             
     public VentanaPrincipal() throws ClassNotFoundException {
         initComponents();
-        cargue_navegacion();
+        cargar_Arbol();
     }
     
     static DefaultMutableTreeNode treeNode1;
@@ -38,7 +38,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     ArrayList<String> consulta_indices;
     ArrayList<String> consulta_roles;
     
-    public void deteccion_motor() throws ClassNotFoundException{
+    public void consulta_diccionario() throws ClassNotFoundException{
         if (Usuario.getBaseDatos()=="Oracle") {
         consulta_tablas = Consultas.consultar("SELECT TABLE_NAME AS RESULTADO FROM USER_TABLES ORDER BY RESULTADO ASC");
         consulta_funciones = Consultas.consultar("SELECT OBJECT_NAME AS RESULTADO FROM USER_PROCEDURES WHERE OBJECT_TYPE = 'FUNCTION' ORDER BY OBJECT_NAME ASC");
@@ -50,13 +50,22 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         consulta_indices = Consultas.consultar("SELECT INDEX_NAME AS RESULTADO FROM USER_INDEXES ORDER BY INDEX_NAME ASC");
         consulta_roles = Consultas.consultar("SELECT GRANTED_ROLE AS RESULTADO FROM USER_ROLE_PRIVS");
         }else if(Usuario.getBaseDatos()=="PostgreSQL"){
-            consulta_tablas = Consultas.consultar("SELECT table_name FROM information_schema.TABLES where table_schema='public';");
+            consulta_tablas = Consultas.consultar("select table_name from information_schema.tables where table_schema not in ('information_schema', 'pg_catalog') and table_type = 'BASE TABLE' order by  table_name");
+            consulta_funciones = Consultas.consultar("select p.proname as specific_name,case p.prokind when 'f' then 'FUNCTION' end as kind from pg_proc p left join pg_namespace n on p.pronamespace = n.oid where  n.nspname not in ('pg_catalog', 'information_schema') and p.prokind = 'f' order by specific_name");
+            consulta_paquetes = Consultas.consultar("select p.proname as specific_name from pg_proc p left join pg_namespace n on p.pronamespace = n.oid where n.nspname not in ('pg_catalog', 'information_schema')and p.prokind = 'p' order by specific_name");
+            consulta_procedimientos = Consultas.consultar("select  p.proname as specific_name from pg_proc where  p.prokind = 'p' order by specific_name");
+            consulta_triggers = Consultas.consultar("select trigger_name from information_schema.triggers");
+            consulta_vistas = Consultas.consultar("select table_name as view_name from information_schema.views where table_schema not in ('information_schema', 'pg_catalog') order by view_name");
+            consulta_usuarios = Consultas.consultar("select usename as username from pg_shadow order by usename");
+            consulta_indices = Consultas.consultar("select indexname from pg_indexes where pg_indexes.schemaname = 'public'");
+            consulta_roles = Consultas.consultar("SELECT rolname FROM pg_roles");
+        
         }
     } 
    
-    private void cargue_navegacion() throws ClassNotFoundException{
-        deteccion_motor();
-        treeNode1 = new DefaultMutableTreeNode(usu.getBaseDatos()+ "BD - ");
+    private void cargar_Arbol() throws ClassNotFoundException{
+        consulta_diccionario();
+        treeNode1 = new DefaultMutableTreeNode(usu.getBaseDatos()+ "BD ");
         
         treeNode2 = new DefaultMutableTreeNode("Tablas");
         for (int i = 0; i < consulta_tablas.size(); i++) {
@@ -170,9 +179,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jInternalFrame1 = new javax.swing.JInternalFrame();
         jScrollPane4 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
-        btnAgregar = new javax.swing.JButton();
-        btnModificar = new javax.swing.JButton();
-        btnEliminar = new javax.swing.JButton();
         btnLimpiar = new javax.swing.JButton();
         btnListar = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
@@ -189,6 +195,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         Arbol_Jtree = new javax.swing.JTree();
         btn_CrearUsuario = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
@@ -346,12 +355,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jTextArea2.setRows(5);
         jScrollPane4.setViewportView(jTextArea2);
 
-        btnAgregar.setText("Agregar");
-
-        btnModificar.setText("Modificar");
-
-        btnEliminar.setText("Eliminar");
-
         btnLimpiar.setText("Limpiar");
 
         btnListar.setText("Listar");
@@ -424,12 +427,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                 .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane4)
                     .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                        .addComponent(btnAgregar)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnModificar)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnEliminar)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(237, 237, 237)
                         .addComponent(btnLimpiar)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton1)
@@ -447,11 +445,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 38, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 81, Short.MAX_VALUE)
                 .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAgregar)
-                    .addComponent(btnModificar)
-                    .addComponent(btnEliminar)
                     .addComponent(btnLimpiar)
                     .addComponent(btnListar)
                     .addComponent(jButton1))
@@ -468,6 +463,12 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         jButton2.setText("Cambiar BD");
 
+        jButton3.setText("Abrir");
+
+        jButton4.setText("Guardar");
+
+        jButton5.setText("Ejecutar");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -480,9 +481,19 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                         .addComponent(btn_CrearUsuario)
                         .addGap(18, 18, 18)
                         .addComponent(jButton2)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
-                .addComponent(jInternalFrame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                        .addComponent(jInternalFrame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(46, 46, 46)
+                        .addComponent(jButton3)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton4)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton5)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -496,9 +507,13 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(Arbol_JScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 468, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(32, 32, 32)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton3)
+                            .addComponent(jButton4)
+                            .addComponent(jButton5))
+                        .addGap(9, 9, 9)
                         .addComponent(jInternalFrame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(24, Short.MAX_VALUE))
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -553,15 +568,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
      
         try {
             cons.ListarDatosTabla(tbResultados, "select * from aspirantes", jTextArea1);
-            
-            /* try {
-            for (Persona per : cons.consultar()) {
-            System.out.println("libro: "+per.getLibro()+" titulo: "+per.getTitulo()+" autor: "+per.getAutor()+" numpag: "+per.getNumpag());    
-            }
-            } catch (ClassNotFoundException ex) {
-            Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            */
         } catch (SQLException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -572,15 +578,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
             cons.ListarDatosTabla(tbResultados, "select * from facultad", jTextArea1);
-            
-            /* try {
-            for (Persona per : cons.consultar()) {
-            System.out.println("libro: "+per.getLibro()+" titulo: "+per.getTitulo()+" autor: "+per.getAutor()+" numpag: "+per.getNumpag());    
-            }
-            } catch (ClassNotFoundException ex) {
-            Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            */
+
         } catch (SQLException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -631,11 +629,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane Arbol_JScroll;
     private javax.swing.JTree Arbol_Jtree;
-    private javax.swing.JButton btnAgregar;
-    private javax.swing.JButton btnEliminar;
     private javax.swing.JButton btnLimpiar;
     private javax.swing.JButton btnListar;
-    private javax.swing.JButton btnModificar;
     private javax.swing.JButton btn_CrearUsuario;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
@@ -643,6 +638,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup4;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;

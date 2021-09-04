@@ -16,7 +16,6 @@ public class VentanaLogin extends javax.swing.JFrame {
     
     public VentanaLogin() {
         initComponents();
-        conectar();
     }
 
     public boolean validarDatos(){
@@ -36,15 +35,16 @@ public class VentanaLogin extends javax.swing.JFrame {
         usuario_BD.setHost(String.valueOf(txt_host.getText()));
         usuario_BD.setPuerto(String.valueOf(txt_Puerto.getText()));
         usuario_BD.setBaseDatos(String.valueOf(comb_opciones.getSelectedItem().toString()));
-        
+        System.out.println(String.valueOf(comb_opciones.getSelectedItem().toString()));
         try {
             Connection connection =  Conexion.conectar();
-            if (connection == null) {
-                JOptionPane.showMessageDialog(rootPane, "ERROR");
-            }else{
-                JOptionPane.showMessageDialog(rootPane, "BIENVENIDO A ORACLE");
-            }
+//            if (connection != null) {
+//                //JOptionPane.showMessageDialog(null, "ERROR");
+//            }else{
+//                JOptionPane.showMessageDialog(rootPane, "BIENVENIDO A ORACLE");
+//            }
         } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "DATOS INCORRECTOS");
         }
     }
     
@@ -268,21 +268,10 @@ public class VentanaLogin extends javax.swing.JFrame {
                 conectar();
                 new VentanaPrincipal().setVisible(true);
                 dispose();
+            }else{
+                System.out.println("DIGITAR TODOS LOS CAMPOS");
             }
-//            }else{i
-////                if (opcion.equals("Oracle")) {
-////                    conectar();
-////                   new VentanaPrincipal().setVisible(true);
-////                   dispose();
-//                    
-////                    BaseDatosOracle.conectar();
-////                    VentanaPrincipal p = new VentanaPrincipal();
-////                    p.setVisible(true);
-//                //BaseDatosOracle.conectar(txt_Usuario.getText(), new String (txt_Contrasena.getPassword()));
-//                }else if(opcion.equals("PostgreSQL")){
-//                    BaseDatosPostgreSQL.conectar_PostgreSQL(txt_Usuario.getText(), new String(txt_Contrasena.getPassword()));
-//                }    
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Conexion no valida");
         }
         

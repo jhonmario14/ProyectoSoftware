@@ -9,8 +9,10 @@ public class BaseDatosPostgreSQL {
     
     private static Connection connection = null;
     private static Usuario usuario_BD = new Usuario();
+  
     
     public static Connection conectar_PostgreSQL() throws ClassNotFoundException {
+        VentanaPrincipal vp = new VentanaPrincipal();
         
         String usuario = usuario_BD.getUser();
         String contrasena = usuario_BD.getContrasena();

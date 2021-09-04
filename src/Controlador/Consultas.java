@@ -1,14 +1,22 @@
 package Controlador;
 
 import Modelo.Usuario;
+import Vista.VentanaLogin;
 import java.awt.List;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
 
-public class Consultas {
-        
+public class Consultas{
+    
+    private VentanaLogin vista;
+    private Usuario user;
+  
     public static ArrayList<String> consultar(String consulta) throws ClassNotFoundException{
         
         ArrayList<String> lista = new ArrayList<String>();
@@ -66,5 +74,5 @@ public class Consultas {
             textError.setText(e.getMessage());
         }
     }
-    
+       
 }

@@ -11,6 +11,7 @@ public class Usuario {
 
     public Usuario() {
     }
+    
 
     public static String getUser() {
         return User;
