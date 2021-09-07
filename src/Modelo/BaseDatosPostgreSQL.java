@@ -1,4 +1,4 @@
-package Controlador;
+package Modelo;
 
 import Modelo.Usuario;
 import Vista.VentanaPrincipal;
@@ -11,7 +11,7 @@ public class BaseDatosPostgreSQL {
     private static Usuario usuario_BD = new Usuario();
   
     
-    public static Connection conectar_PostgreSQL() throws ClassNotFoundException {
+    public static Connection conectar_PostgreSQL() throws SQLException, ClassNotFoundException {
         VentanaPrincipal vp = new VentanaPrincipal();
         
         String usuario = usuario_BD.getUser();
@@ -20,7 +20,7 @@ public class BaseDatosPostgreSQL {
         String host = usuario_BD.getHost();
         String puerto = usuario_BD.getPuerto();
         String basedatos = usuario_BD.getBaseDatos();
-        String url = "jdbc:"+ basedatos+ "://" + host + ":"+ puerto + "/"+ instancia + "";
+        String url = "jdbc:"+ basedatos + "://" + host + ":"+ puerto + "/"+ instancia + "";
         
         try{
             if (BaseDatosPostgreSQL.connection == null) {

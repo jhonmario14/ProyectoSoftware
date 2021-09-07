@@ -1,13 +1,14 @@
 package Vista;
 
-import Controlador.BaseDatosOracle;
-import Controlador.BaseDatosPostgreSQL;
-import Controlador.Conexion;
-import Modelo.Usuario;
+import Controlador.*;
+import Modelo.*;
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import oracle.jdbc.OraclePreparedStatement;
-import oracle.jdbc.OracleResultSet;
+import oracle.jdbc.*;
+
 
 public class VentanaLogin extends javax.swing.JFrame {
     
@@ -16,6 +17,7 @@ public class VentanaLogin extends javax.swing.JFrame {
     
     public VentanaLogin() {
         initComponents();
+        //conectar();
     }
 
     public boolean validarDatos(){
@@ -28,6 +30,7 @@ public class VentanaLogin extends javax.swing.JFrame {
             return true;
         }
     }
+   
     public void conectar(){
         usuario_BD.setUser(String.valueOf(txt_Usuario.getText()));
         usuario_BD.setContrasena(String.valueOf(txt_Contrasena.getText()));
@@ -37,7 +40,8 @@ public class VentanaLogin extends javax.swing.JFrame {
         usuario_BD.setBaseDatos(String.valueOf(comb_opciones.getSelectedItem().toString()));
         System.out.println(String.valueOf(comb_opciones.getSelectedItem().toString()));
         try {
-            Connection connection =  Conexion.conectar();
+   
+             Connection connection =  Conexion.conectar();
 //            if (connection != null) {
 //                //JOptionPane.showMessageDialog(null, "ERROR");
 //            }else{
@@ -101,7 +105,7 @@ public class VentanaLogin extends javax.swing.JFrame {
 
         lab_motor.setText("Motor de Base de datos: ");
 
-        comb_opciones.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccionar", "Oracle", "Postgresql" }));
+        comb_opciones.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccionar", "oracle", "postgresql" }));
         comb_opciones.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comb_opcionesActionPerformed(evt);
@@ -264,6 +268,9 @@ public class VentanaLogin extends javax.swing.JFrame {
 
     private void btn_conectarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_conectarActionPerformed
         try {
+//            if (opcion == "postgresql") {
+//                BaseDatosPostgreSQL.conectar_PostgreSQL();
+//            }
             if (validarDatos()== true){
                 conectar();
                 new VentanaPrincipal().setVisible(true);
@@ -273,8 +280,10 @@ public class VentanaLogin extends javax.swing.JFrame {
             }
         } catch (ClassNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Conexion no valida");
+//        } catch (SQLException ex) {
+//            Logger.getLogger(VentanaLogin.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         }
-        
     }//GEN-LAST:event_btn_conectarActionPerformed
 
     private void txt_InstanciaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_InstanciaActionPerformed

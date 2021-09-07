@@ -1,4 +1,4 @@
-package Controlador;
+package Modelo;
 
 import Modelo.Usuario;
 import Vista.VentanaPrincipal;

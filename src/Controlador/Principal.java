@@ -1,6 +1,6 @@
 
 package Controlador;
-import Controlador.BaseDatosOracle;
+import Modelo.BaseDatosOracle;
 import Vista.VentanaLogin;
 
 public class Principal {

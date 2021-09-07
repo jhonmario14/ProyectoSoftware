@@ -1,12 +1,20 @@
 package Vista;
 
-import Controlador.BaseDatosOracle;
+import Modelo.BaseDatosOracle;
 import Controlador.Consultas;
 import Modelo.Usuario;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class VentanaPrincipal extends javax.swing.JFrame {
@@ -39,7 +47,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     ArrayList<String> consulta_roles;
     
     public void consulta_diccionario() throws ClassNotFoundException{
-        if (Usuario.getBaseDatos()=="Oracle") {
+        
+       if (Usuario.getBaseDatos()== "oracle") {
         consulta_tablas = Consultas.consultar("SELECT TABLE_NAME AS RESULTADO FROM USER_TABLES ORDER BY RESULTADO ASC");
         consulta_funciones = Consultas.consultar("SELECT OBJECT_NAME AS RESULTADO FROM USER_PROCEDURES WHERE OBJECT_TYPE = 'FUNCTION' ORDER BY OBJECT_NAME ASC");
         consulta_paquetes = Consultas.consultar("SELECT OBJECT_NAME AS RESULTADO FROM USER_PROCEDURES WHERE OBJECT_TYPE = 'PACKAGE' GROUP BY OBJECT_NAME");
@@ -49,23 +58,24 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         consulta_usuarios = Consultas.consultar("SELECT USERNAME AS RESULTADO FROM USER_USERS");
         consulta_indices = Consultas.consultar("SELECT INDEX_NAME AS RESULTADO FROM USER_INDEXES ORDER BY INDEX_NAME ASC");
         consulta_roles = Consultas.consultar("SELECT GRANTED_ROLE AS RESULTADO FROM USER_ROLE_PRIVS");
-        }else if(Usuario.getBaseDatos()=="PostgreSQL"){
-            consulta_tablas = Consultas.consultar("select table_name from information_schema.tables where table_schema not in ('information_schema', 'pg_catalog') and table_type = 'BASE TABLE' order by  table_name");
-            consulta_funciones = Consultas.consultar("select p.proname as specific_name,case p.prokind when 'f' then 'FUNCTION' end as kind from pg_proc p left join pg_namespace n on p.pronamespace = n.oid where  n.nspname not in ('pg_catalog', 'information_schema') and p.prokind = 'f' order by specific_name");
-            consulta_paquetes = Consultas.consultar("select p.proname as specific_name from pg_proc p left join pg_namespace n on p.pronamespace = n.oid where n.nspname not in ('pg_catalog', 'information_schema')and p.prokind = 'p' order by specific_name");
-            consulta_procedimientos = Consultas.consultar("select  p.proname as specific_name from pg_proc where  p.prokind = 'p' order by specific_name");
-            consulta_triggers = Consultas.consultar("select trigger_name from information_schema.triggers");
-            consulta_vistas = Consultas.consultar("select table_name as view_name from information_schema.views where table_schema not in ('information_schema', 'pg_catalog') order by view_name");
-            consulta_usuarios = Consultas.consultar("select usename as username from pg_shadow order by usename");
-            consulta_indices = Consultas.consultar("select indexname from pg_indexes where pg_indexes.schemaname = 'public'");
-            consulta_roles = Consultas.consultar("SELECT rolname FROM pg_roles");
-        
+        }if(usu.getBaseDatos()== "postgresql"){
+            System.out.println("HOLA ENTRÉ A POSTGRES");
+            //System.out.println("HOLA..."+Usuario.getBaseDatos());
+            consulta_tablas = Consultas.consultar("SELECT TABLENAME FROM PG_TABLES WHERE SCHEMANAME = 'public'");  //OK
+            consulta_funciones = Consultas.consultar("SELECT P.PRONAME AS SPECIFIC_NAME, CASE P.PROKIND WHEN 'f' THEN 'FUNCTION' END AS KIND FROM PG_PROC P LEFT JOIN PG_NAMESPACE N ON P.PRONAMESPACE = N.OID WHERE  N.NSPNAME NOT IN ('pg_catalog', 'information_schema') AND P.PROKIND = 'f' ORDER BY SPECIFIC_NAME;"); // OK
+            consulta_paquetes = Consultas.consultar("");
+            consulta_procedimientos = Consultas.consultar("SELECT  P.PRONAME AS SPECIFIC_NAME FROM PG_PROC P WHERE  P.PROKIND = 'p' ORDER BY SPECIFIC_NAME"); // OK
+            consulta_triggers = Consultas.consultar("SELECT TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS"); // OK
+            consulta_vistas = Consultas.consultar("select table_name as view_name from information_schema.views here table_schema not in ('information_schema', 'pg_catalog')"); //OK
+            consulta_usuarios = Consultas.consultar("SELECT USENAME AS USERNAME FROM PG_SHADOW ORDER BY USENAME"); // OK
+            consulta_indices = Consultas.consultar("SELECT INDEXNAME FROM PG_INDEXES WHERE SCHEMANAME = 'public'");// OK
+            consulta_roles = Consultas.consultar("SELECT ROLNAME FROM PG_ROLES");   
         }
     } 
    
     private void cargar_Arbol() throws ClassNotFoundException{
         consulta_diccionario();
-        treeNode1 = new DefaultMutableTreeNode(usu.getBaseDatos()+ "BD ");
+        treeNode1 = new DefaultMutableTreeNode(usu.getBaseDatos()+ " - BD ");
         
         treeNode2 = new DefaultMutableTreeNode("Tablas");
         for (int i = 0; i < consulta_tablas.size(); i++) {
@@ -124,8 +134,61 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             treeNode1.add(treeNode2); 
         }
         
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Indices");
+        for (int i = 0; i < consulta_indices.size(); i++) {
+            treeNode3 = new javax.swing.tree.DefaultMutableTreeNode(consulta_indices.get(i));
+            treeNode2.add(treeNode3);
+            treeNode1.add(treeNode2); 
+        }
+        
         Arbol_Jtree.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         Arbol_JScroll.setViewportView(Arbol_Jtree);  
+    }
+    
+    private String abrir_Archivo(){
+        
+        String aux = "";
+        String texto = "";
+        try {
+            JFileChooser archivo = new JFileChooser();
+            archivo.setDialogTitle("Abrir");
+            FileNameExtensionFilter filtro = new FileNameExtensionFilter("Archivo SQL [.sql]", "sql");
+            archivo.setFileFilter(filtro);
+            archivo.showOpenDialog(archivo);
+            File abre = archivo.getSelectedFile();
+            if (abre != null) {
+                FileReader archivos = new FileReader(abre);
+                BufferedReader lee = new BufferedReader(archivos);
+                while ((aux = lee.readLine()) != null) {                    
+                    texto += aux;
+                }
+                jTextArea2.append(texto);
+                lee.close();
+                
+            }
+            
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(rootPane, e +""+ "\nNo se ha encontrado el archivo", "ADVERTENCIA", 0);
+        }
+        return texto;
+    }
+    
+    private void guardar_archivo(JTextArea Jarea){
+        try {
+            String nombre = "";
+            JFileChooser archivo = new JFileChooser();
+            archivo.setDialogTitle("Guardar");
+            FileNameExtensionFilter filtro = new FileNameExtensionFilter("Archivo SQL [.sql]", "sql");
+            archivo.setFileFilter(filtro);
+            archivo.showOpenDialog(archivo);
+            File guarda = archivo.getSelectedFile();
+            if (guarda.exists()) {
+                
+                
+            }
+        } catch (Exception e) {
+        }
+        
     }
     
 
@@ -179,9 +242,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jInternalFrame1 = new javax.swing.JInternalFrame();
         jScrollPane4 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
-        btnLimpiar = new javax.swing.JButton();
         btnListar = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btn_ListarPostgres = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         tbResultados = new javax.swing.JTable();
@@ -194,10 +256,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         Arbol_Jtree = new javax.swing.JTree();
         btn_CrearUsuario = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
+        btn_CambiarBD = new javax.swing.JButton();
+        btn_AbrirArchivo = new javax.swing.JButton();
+        btn_GuardarArchivo = new javax.swing.JButton();
+        btn_EjecutarCodigo = new javax.swing.JButton();
+        btn_Refrescar = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
@@ -355,8 +418,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jTextArea2.setRows(5);
         jScrollPane4.setViewportView(jTextArea2);
 
-        btnLimpiar.setText("Limpiar");
-
         btnListar.setText("Listar");
         btnListar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -364,10 +425,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setText("ListarPostgres");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btn_ListarPostgres.setText("ListarPostgres");
+        btn_ListarPostgres.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btn_ListarPostgresActionPerformed(evt);
             }
         });
 
@@ -391,17 +452,17 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 567, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addContainerGap(74, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 754, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+            .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jMenu7.setText("SQL");
@@ -423,51 +484,80 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jInternalFrame1Layout.setHorizontalGroup(
             jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane4)
                     .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                        .addGap(237, 237, 237)
-                        .addComponent(btnLimpiar)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btn_ListarPostgres)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnListar)))
+                        .addComponent(btnListar))
+                    .addGroup(jInternalFrame1Layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jInternalFrame1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane4)))
                 .addContainerGap())
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jInternalFrame1Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jInternalFrame1Layout.setVerticalGroup(
             jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jInternalFrame1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(23, 23, 23)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(38, 38, 38)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 81, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnLimpiar)
                     .addComponent(btnListar)
-                    .addComponent(jButton1))
-                .addContainerGap())
+                    .addComponent(btn_ListarPostgres))
+                .addContainerGap(71, Short.MAX_VALUE))
         );
 
-        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("Base de Datos");
+        javax.swing.tree.DefaultMutableTreeNode treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Tablas");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Funciones");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Paquetes");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Procedimientos");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Triggers");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Vistas");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Roles");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Usuarios");
+        treeNode1.add(treeNode2);
+        treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Indices");
+        treeNode1.add(treeNode2);
         Arbol_Jtree.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        Arbol_Jtree.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                Arbol_JtreeMouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(Arbol_Jtree);
 
         Arbol_JScroll.setViewportView(jScrollPane2);
 
         btn_CrearUsuario.setText("Crear Usuario");
 
-        jButton2.setText("Cambiar BD");
+        btn_CambiarBD.setText("Cambiar BD");
 
-        jButton3.setText("Abrir");
+        btn_AbrirArchivo.setText("Abrir");
+        btn_AbrirArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_AbrirArchivoActionPerformed(evt);
+            }
+        });
 
-        jButton4.setText("Guardar");
+        btn_GuardarArchivo.setText("Guardar");
 
-        jButton5.setText("Ejecutar");
+        btn_EjecutarCodigo.setText("Ejecutar");
+
+        btn_Refrescar.setText("Refrescar");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -476,24 +566,26 @@ public class VentanaPrincipal extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(Arbol_JScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(btn_CrearUsuario)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton2)))
+                        .addComponent(btn_CambiarBD))
+                    .addComponent(Arbol_JScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                        .addGap(21, 21, 21)
+                        .addComponent(btn_AbrirArchivo)
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_GuardarArchivo)
+                        .addGap(18, 18, 18)
+                        .addComponent(btn_EjecutarCodigo)
+                        .addGap(228, 228, 228)
+                        .addComponent(btn_Refrescar)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                         .addComponent(jInternalFrame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(46, 46, 46)
-                        .addComponent(jButton3)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton4)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton5)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addContainerGap())))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -503,17 +595,18 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                         .addGap(21, 21, 21)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btn_CrearUsuario)
-                            .addComponent(jButton2))
+                            .addComponent(btn_CambiarBD))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(Arbol_JScroll, javax.swing.GroupLayout.PREFERRED_SIZE, 468, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton3)
-                            .addComponent(jButton4)
-                            .addComponent(jButton5))
+                            .addComponent(btn_AbrirArchivo)
+                            .addComponent(btn_GuardarArchivo)
+                            .addComponent(btn_EjecutarCodigo)
+                            .addComponent(btn_Refrescar))
                         .addGap(9, 9, 9)
                         .addComponent(jInternalFrame1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -566,25 +659,43 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
     private void btnListarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarActionPerformed
      
-        try {
-            cons.ListarDatosTabla(tbResultados, "select * from aspirantes", jTextArea1);
+      /*  try {
+            cons.ListarDatosTabla(tbResultados, "select * from cargos", jTextArea1);
         } catch (SQLException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         }
+        */
     }//GEN-LAST:event_btnListarActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            cons.ListarDatosTabla(tbResultados, "select * from facultad", jTextArea1);
+    private void btn_ListarPostgresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_ListarPostgresActionPerformed
+       /* try {
+            cons.ListarDatosTabla(tbResultados, "select * from cargos", jTextArea1);
 
         } catch (SQLException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(VentanaPrincipal.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+        */
+    }//GEN-LAST:event_btn_ListarPostgresActionPerformed
+
+    private void btn_AbrirArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_AbrirArchivoActionPerformed
+        abrir_Archivo();
+    }//GEN-LAST:event_btn_AbrirArchivoActionPerformed
+
+    private void Arbol_JtreeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Arbol_JtreeMouseClicked
+        try {
+            if (evt.getClickCount() == 2) {
+                DefaultMutableTreeNode selec = (DefaultMutableTreeNode) Arbol_Jtree.getSelectionPath().getLastPathComponent();
+                System.out.println(selec.getUserObject().toString());
+                String consulta = "" + selec.getUserObject().toString();
+                Consultas.ListarDatosTabla(consulta, tbResultados, jTextArea1);
+            }
+        } catch (Exception e) {
+        }
+    }//GEN-LAST:event_Arbol_JtreeMouseClicked
 
     /**
      * @param args the command line arguments
@@ -629,18 +740,18 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane Arbol_JScroll;
     private javax.swing.JTree Arbol_Jtree;
-    private javax.swing.JButton btnLimpiar;
     private javax.swing.JButton btnListar;
+    private javax.swing.JButton btn_AbrirArchivo;
+    private javax.swing.JButton btn_CambiarBD;
     private javax.swing.JButton btn_CrearUsuario;
+    private javax.swing.JButton btn_EjecutarCodigo;
+    private javax.swing.JButton btn_GuardarArchivo;
+    private javax.swing.JButton btn_ListarPostgres;
+    private javax.swing.JButton btn_Refrescar;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.ButtonGroup buttonGroup4;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem2;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem3;
